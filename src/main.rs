@@ -2,7 +2,9 @@ mod xmodem;
 mod hp_object;
 mod kermit;
 mod helpers;
-
+mod hp_extract;
+mod objtypes;
+mod objs;
 use std::time::Duration;
 use std::path::PathBuf;
 
@@ -95,7 +97,12 @@ enum Commands {
 	#[arg(default_value = "")]
 	path: PathBuf,
     },
-}
+    /// Extract HP dir into something meaningful for a posix computer
+    Extract {
+		#[arg(default_value = "")]
+		path: PathBuf,
+		},
+	}
 
 
 fn get_serial_port(cli_port: Option<PathBuf>, cli_baud: Option<u32>) -> Box<dyn serialport::SerialPort> {
@@ -156,7 +163,8 @@ fn get_serial_port(cli_port: Option<PathBuf>, cli_baud: Option<u32>) -> Box<dyn 
 // The finish argument is to be ignored (and a message printed) if the
 // direct flag is set. That is the only time---again, so simple
 // compared to HPex.
-fn main() {
+fn main() -> Result<(), anyhow::Error> 
+{
     let cli = Cli::parse();
 
     // TODO: in Kermit mode, increase serial timeout
@@ -198,7 +206,7 @@ fn main() {
 	    let mut port = get_serial_port(cli.port, cli.baud);
 	    //println!("Xget, path = {:?}, overwrite = {:?}", path, overwrite);
 	    // get the actual path that the transfer wrote to
-	    let final_path = xmodem::get_file(path, &mut port, direct, overwrite, finish);
+	    let final_path = xmodem::get_file(path, &mut port, direct, overwrite, finish)?;
 	    // "of" is not the right preposition to use here, but it
 	    // makes it clear that we're talking about the file after
 	    // processing, stored on the computer's drive.
@@ -226,5 +234,9 @@ fn main() {
 	Commands::Info { path } => {
 	    hp_object::crc_and_output(path);
 	},
+	Commands::Extract { path } => {
+	    hp_extract::extract_objs(path);
+	},
     }
+	Ok(())
 }

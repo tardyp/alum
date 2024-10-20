@@ -11,3 +11,6 @@ serialport = "4.3"
 indicatif = "0.17"
 # works alongside the indicatif package
 console = "0.15"
+hxdmp = "0.2.1"
+anyhow = "1.0.90"
+nom = "7.1.3"
